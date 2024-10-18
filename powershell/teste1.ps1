@@ -1,4 +1,34 @@
-﻿function Execute-Sql($sql) {
+﻿function copia_tabela() {
+
+    $tables='D:/temp/sped/importacoes/tabelas.txt'
+    if (Test-Path $tables) {
+        Remove-Item $tables
+    }
+    $query = 'USE sped_efd;'
+    Execute-MySQLNonQuery $conn $query
+    $query = "SELECT TABLE_NAME FROM information_schema.`TABLES` WHERE table_schema='sped_tabelas' INTO OUTFILE '$tables';"
+    Execute-MySQLNonQuery $conn $query
+
+    $tabelas = Get-Content -Path $tables
+
+    foreach ($table in $tabelas) {
+        Write-Host "Criando a tabela tbs_$table"
+        $query = "DROP TABLE if EXISTS tbs_$table;"
+        Execute-MySQLNonQuery $conn $query
+        $query = "CREATE TABLE tbs_$table SELECT * FROM sped_tabelas.$table;"
+        Execute-MySQLNonQuery $conn $query
+
+        $tbl='tbs_'+$table
+        Write-Host 'Alterando '$tbl
+
+        $query = "ALTER TABLE $tbl CHANGE COLUMN `id` `id` INT NOT NULL AUTO_INCREMENT FIRST, ADD PRIMARY KEY (`id`);"
+        Execute-MySQLNonQuery $conn $query
+    }
+}
+
+
+
+function Execute-Sql($sql) {
 
     $query = $sql
 

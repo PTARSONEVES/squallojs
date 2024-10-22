@@ -296,11 +296,9 @@ Function normalizaData($campo,$cie) {
 #
 # ============================================================================================================================================
 
-<<<<<<< HEAD
 $maquina = 'NOTEPTNA'
-=======
+
 # Database Local
->>>>>>> dc6d016e0325d35316eb54960dfb62ef2de27909
 
 $user = 'root'
 $MySQLHost = 'localhost'
@@ -314,15 +312,6 @@ if ($maquina -eq 'NOTEPTNA') {
     $drive = 'D:'
 }
 
-
-<# Database Localweb
-
-$user = 'sped_efd'
-$pass = 'Strol!ndi!1'
-$MySQLHost = 'sped_efd.mysql.dbaas.com.br'
-$database = 'sped_efd'
-
-#>
 
 
 <# Database Localweb

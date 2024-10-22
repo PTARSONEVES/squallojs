@@ -102,6 +102,137 @@ function Remove-Diacritics
   }
 }
 
+function carregaSped($registro) {
+    
+    
+    #Write-Host $registro
+    #$c=$registro.BaseName.Remove(0,3)
+    
+    $query = 'TRUNCATE TABLE reg'+$registro+'ie;'
+    Write-Host $query
+    Execute-MySQLNonQuery $conn $query
+
+    $query = "LOAD DATA INFILE '" + $dirTrataMySQL + "/efd" + $registro+ ".txt' INTO TABLE reg" + $registro + "ie FIELDS TERMINATED BY '|';"
+    Write-Host $query
+    Execute-MySQLNonQuery $conn $query
+
+    $query = "DROP TABLE if EXISTS prov;"
+    Execute-MySQLNonQuery $conn $query
+    $query = "CREATE TABLE prov SELECT b.id,a.registro,b.fieldnum,b.idmysql,b.fieldname,b.fieldtype,b.fieldlen,b.fielddec FROM tbs_registros a,tbs_campos b WHERE a.id=b.idregistro AND a.registro='"+$registro+"'; "
+    Write-Host $query
+    Execute-MySQLNonQuery $conn $query
+
+    $query = "SELECT MIN(id) FROM reg"+$registro+"ie;"
+  Write-Host $query
+    $idmin = Execute-MySQLScalar $query
+
+    $query = "SELECT * FROM reg"+$registro+"ie a INNER JOIN prov b WHERE a.REG=b.registro AND a.Id="+$idmin+";"
+  Write-Host $query
+    $ss = Execute-MySQLQuery $query
+
+    $fim = $ss.Count
+    $totalcol = $ss[1].Table.Columns.Count
+    Write-Host 'Total de colunas = '$totalcol
+
+    $ini = 1
+    exit
+    for ($i=$ini;$i -le ($fim-1);$i++) {
+        $colname = $ss[$i].Table.Columns[$i].ColumnName
+        $colvalue = $ss[$i].$colname
+        $mysql = $ss[$i].idmysql
+        normalizaSpedie $colname $c
+    }
+
+}
+
+
+# ============================================================================================================================================
+#
+#  Função => NORMALIZA CAMPOS SPED_IE
+#
+# ============================================================================================================================================
+
+Function normalizaSpedie($campo,$registro) {
+    
+    $cie='reg'+$registro+'ie'
+
+    $query = "SELECT b.idmysql FROM tbs_registros a,tbs_campos b WHERE a.id=b.idregistro AND a.registro='"+$registro+"' AND b.fieldname = '"+$campo+"';"
+    $mysql = Execute-MySQLScalar $query
+
+    Write-Host 'Registro a normalizar: reg'$registro'ie  coluna: '$campo' código mysql = '$mysql
+
+    switch($mysql) {
+        
+        18 {
+                if ($campo.Contains(“DT_”)) {
+                    Write-Host 'Normalizando data'
+                    normalizaData $campo $cie
+                } else {
+                    Write-Host 'Analisando...'
+                    normalizaDecimal $campo $cie
+                }
+                break
+           }       
+        20 {
+                if ($campo.Contains(“DT_”)) {
+                    Write-Host 'Normalizando data'
+                    normalizaData $campo $cie
+                } else {
+                    Write-Host 'Analisando...'
+                    normalizaDecimal $campo $cie
+                }
+                break
+           }       
+        22 {
+                if ($campo.Contains(“DT_”)) {
+                    Write-Host 'Normalizando data'
+                    normalizaData $campo $cie
+                } else {
+                    Write-Host 'Analisando...'
+                    normalizaDecimal $campo $cie
+                }
+                break
+           }       
+        default {break}
+    }
+}
+
+# ============================================================================================================================================
+#
+#  Função => NORMALIZA CAMPO DECIMAL
+#
+# ============================================================================================================================================
+
+Function normalizaDecimal($campo,$cie) {
+    
+    $sqls =  Get-Content -Path $dirSql\normaliza_decimal.sql
+    foreach ($sql in $sqls) {
+        $sql = $sql -replace 'arquivo', $cie
+        $sql = $sql -replace 'campo', $campo
+        Write-Host $sql
+        Execute-MySQLNonQuery $conn $sql
+    }
+    
+ }
+
+# ============================================================================================================================================
+#
+#  Função => NORMALIZA CAMPO DE DATA
+#
+# ============================================================================================================================================
+
+Function normalizaData($campo,$cie) {
+    
+    $sqls =  Get-Content -Path $dirSql\normaliza_data.sql
+    foreach ($sql in $sqls) {
+        $sql = $sql -replace 'arquivo', $cie
+        $sql = $sql -replace 'campo', $campo
+        Write-Host $sql
+        Execute-MySQLNonQuery $conn $sql
+    }
+    
+ }
+
 
 $maquina = 'NOTEPTNA'
 
@@ -151,7 +282,9 @@ if ($nreg.Count -ge 1) {
            Execute-MySQLNonQuery $conn $query
            $query = "SELECT texto FROM spedprov INTO OUTFILE '"+$dirTrataMySQL+"/efd"+$registros[$i].registro+".txt';" 
            Execute-MySQLNonQuery $conn $query
-           Write-Host 'Criado o arquivo  '$registros[$i].registro'.txt'
+           Write-Host 'Criado o arquivo efd'$registros[$i].registro'.txt'
+           carregaSped $registros[$i].registro
+           exit
         }
     }
 }

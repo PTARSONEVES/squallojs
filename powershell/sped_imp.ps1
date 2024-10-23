@@ -325,7 +325,8 @@ $database = 'sped_efd'
 
 $linha='linha.txt'
 $sped='sped.txt'
-$spedori='spedori.txt'
+$spedOri='spedori.txt'
+$spedTrata='spedtrata.txt'
 
 $dirPws=$drive+'\temp\sped'
 $dirPwsMySQL=$drive+'/temp/sped'
@@ -372,8 +373,9 @@ if (Test-Path $dirPws) {
         New-Item -Path $dirImp -ItemType Directory
         New-Item -Path $dirTrata -ItemType Directory
         New-Item -Path $dirSql -ItemType Directory
-        New-Item -Path $dirImp\$spedori -ItemType file
-        New-Item -path $dirImp\$sped -ItemType file
+        New-Item -Path $dirImp\$spedOri -ItemType file
+        New-Item -Path $dirImp\$sped -ItemType file
+        New-Item -Path $dirImpr\$spedTrata
 
     }
 } else {

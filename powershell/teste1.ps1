@@ -112,7 +112,9 @@ function carregaSped($registro) {
     Write-Host $query
     Execute-MySQLNonQuery $conn $query
 
-    $query = "LOAD DATA INFILE '" + $dirTrataMySQL + "/efd" + $registro+ ".txt' INTO TABLE reg" + $registro + "ie FIELDS TERMINATED BY '|';"
+    #$query = "LOAD DATA INFILE '" + $dirTrataMySQL + "/efd" + $registro+ ".txt' INTO TABLE reg" + $registro + "ie FIELDS TERMINATED BY '|';"
+
+    $query = "LOAD DATA INFILE '" + $dirTrataMySQL + "/spedprov.txt' INTO TABLE reg" + $registro + "ie FIELDS TERMINATED BY '|';"
     Write-Host $query
     Execute-MySQLNonQuery $conn $query
 
@@ -125,24 +127,33 @@ function carregaSped($registro) {
     $query = "SELECT MIN(id) FROM reg"+$registro+"ie;"
   Write-Host $query
     $idmin = Execute-MySQLScalar $query
+    Write-Host $idmin
 
     $query = "SELECT * FROM reg"+$registro+"ie a INNER JOIN prov b WHERE a.REG=b.registro AND a.Id="+$idmin+";"
-  Write-Host $query
+    Write-Host $query
     $ss = Execute-MySQLQuery $query
-
+ 
     $fim = $ss.Count
     $totalcol = $ss[1].Table.Columns.Count
     Write-Host 'Total de colunas = '$totalcol
+    Write-Host 'Total de campos = '$fim
 
     $ini = 1
-    exit
+    $posmysql=$fim+3
     for ($i=$ini;$i -le ($fim-1);$i++) {
         $colname = $ss[$i].Table.Columns[$i].ColumnName
         $colvalue = $ss[$i].$colname
-        $mysql = $ss[$i].idmysql
-        normalizaSpedie $colname $c
+       # $mysql = $ss[$i].($ss[$i].Table.Columns[$posmysql].ColumnName)
+       $mysql=$ss[$i].idmysql
+        Write-Host 'Coluna '$colname' = '$colvalue
+        Write-Host 'Idmysql = '$mysql
+        normalizaSpedie $colname $registro
     }
-
+    Remove-Item $dirTrata\spedprov.txt
+    $query = "SELECT * FROM reg"+$registro+"ie INTO OUTFILE '"+$dirTrataMySQL+"/spedprov.txt' FIELDS TERMINATED BY '|';"
+    Execute-MySQLNonQuery $conn $query
+    Get-Content -Path $dirTrata\spedprov.txt | Add-Content -Path $dirImp\$spedTrata
+    Remove-Item $dirTrata\spedprov.txt
 }
 
 
@@ -249,6 +260,7 @@ $database = 'sped_efd'
 $linha='linha.txt'
 $sped='sped.txt'
 $spedori='spedori.txt'
+$spedTrata='spedtrata.txt'
 
 $drive='F:'
 $dirPws=$drive+'\temp\sped'
@@ -269,6 +281,8 @@ $conn.Open()
 $query = "SELECT * FROM sped_txt;"
 $nreg = Execute-MySQLQuery $query
 if ($nreg.Count -ge 1) {
+    Clear-Content -Path $dirImp\$spedOri
+    Clear-Content -Path $dirImp\$spedTrata
     Remove-Item -Path $dirTrata\*.*
     $query = "SELECT * FROM tbs_registros;"
     $registros = Execute-MySQLQuery $query
@@ -280,11 +294,18 @@ if ($nreg.Count -ge 1) {
            Execute-MySQLNonQuery $conn $query
            $query = "REPLACE spedprov SELECT CONCAT(id,texto)  FROM sped_txt WHERE texto LIKE '|"+$registros[$i].registro+"%';" 
            Execute-MySQLNonQuery $conn $query
-           $query = "SELECT texto FROM spedprov INTO OUTFILE '"+$dirTrataMySQL+"/efd"+$registros[$i].registro+".txt';" 
-           Execute-MySQLNonQuery $conn $query
-           Write-Host 'Criado o arquivo efd'$registros[$i].registro'.txt'
+           if (Test-Path $dirTrata\spedprov.txt) {
+                Remove-Item -Path $dirTrata\spedprov.txt
+           }
+           $query = "SELECT texto FROM spedprov INTO OUTFILE '"+$dirTrataMySQL+"/spedprov.txt';" 
+           Write-Host $query
+
+#           $query = "SELECT texto FROM spedprov INTO OUTFILE '"+$dirTrataMySQL+"/efd"+$registros[$i].registro+".txt';" 
+          Execute-MySQLNonQuery $conn $query
+  #         Write-Host 'Criado o arquivo efd'$registros[$i].registro'.txt'
            carregaSped $registros[$i].registro
-           exit
+           Remove-Item -Path $dirTrata\spedprov.txt
+#           exit
         }
     }
 }

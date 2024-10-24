@@ -134,9 +134,14 @@ function verifica_pastas() {
             } else {
                 New-Item -Path $dirSql -ItemType Directory
             }
+            if (Test-Path -Path $dirArqTrata) {
+            } else {
+                New-Item -Path $dirArqTrata -ItemType Directory
+            }
         } else {
             New-Item -Path $dirArquivos -ItemType Directory
             New-Item -Path $dirImp -ItemType Directory
+            New-Item -Path $dirArqTrata -ItemType Directory
             New-Item -Path $dirTrata -ItemType Directory
             New-Item -Path $dirSql -ItemType Directory
         }
@@ -414,14 +419,14 @@ Function normalizaDecimal($campo,$cie) {
 # ============================================================================================================================================
 
 Function normalizaData($campo,$cie) {
-    
+
     $sqls =  Get-Content -Path $dirSql\normaliza_data.sql
     foreach ($sql in $sqls) {
         $sql = $sql -replace 'arquivo', $cie
         $sql = $sql -replace 'campo', $campo
         Execute-MySQLNonQuery $conn $sql
     }
-    
+
  }
 
 
@@ -434,10 +439,9 @@ Function normalizaData($campo,$cie) {
 $maquina = 'NOTEPTNA'
 
     switch($maquina) {
-        
-            'NOTESAL'  {$PWSDrive = 'D:'}       
-            'NOTEPTNA' {$PWSDrive = 'F:'}          
-            default    {$PWSDrive = 'C:'}
+        'NOTESAL'  {$PWSDrive = 'D:'}
+        'NOTEPTNA' {$PWSDrive = 'F:'}
+        default    {$PWSDrive = 'C:'}
     }
 
 $linha='linha.txt'

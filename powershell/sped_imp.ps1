@@ -431,6 +431,8 @@ Function normalizaData($campo,$cie) {
 #
 # ============================================================================================================================================
 
+$maquina = 'NOTEPTNA'
+
     switch($maquina) {
         
             'NOTESAL'  {$PWSDrive = 'D:'}       
@@ -440,6 +442,8 @@ Function normalizaData($campo,$cie) {
 
 $linha='linha.txt'
 $sped='sped.txt'
+$spedOri='spedori.txt'
+$spedTrata='spedtrata.txt'
 $spedOri='spedori.txt'
 $spedTrata='spedtrata.txt'
 

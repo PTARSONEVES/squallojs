@@ -237,7 +237,7 @@ function processaSped($arqv) {
     # Obtendo os dados do arquivo sped.txt na tabela sped_txt do banco de dados
     #
     Write-Host 'Obtendo o arquivo sped tratado...'
-    $query = "LOAD DATA INFILE 'D:/temp/sped/importacoes/sped.txt' INTO TABLE spedprov;"
+    $query = "LOAD DATA INFILE '"+$dirImpMySQL+"/"+$sped+"' INTO TABLE spedprov;"
     Execute-MySQLNonQuery $conn $query
     #
     # Normalizando as colunas do arquivo em função de cada registro. Para isso será executado

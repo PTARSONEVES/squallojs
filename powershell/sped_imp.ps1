@@ -9,13 +9,12 @@
 #
 # ============================================================================================================================================
 
-#function Connect-MySQL([string]$user, [string]$pass, [string]$MySQLHost, [string]$database) {
-function Connect-MySQL($MySQLUser, $MySQLPassword, $MySQLHost, $MySQLDatabase) {
+function Connect-MySQL($Env:MySQLUser, $Env:MySQLPassword, $Env:MySQLHost, $Env:MySQLDatabase) {
 
     # Load MySQL .NET Connector Objects 
     [void][system.reflection.Assembly]::LoadWithPartialName("MySql.Data")
     # Open Connection
-    $connStr = "server=" + $MySQLHost + ";port=3306;uid=" + $user + ";pwd=" + $pass + ";database=" + $database + ";Pooling=FALSE"
+    $connStr = "server= " + $Env:MySQLHost + ";port=3306;uid= " + $Env:MySQLUser + ";pwd= " + $Env:MySQLPassword + ";database= " + $Env:MySQLDatabase + ";Pooling=FALSE"
     try {
         $conn = New-Object MySql.Data.MySqlClient.MySqlConnection($connStr)
     }
@@ -30,7 +29,7 @@ function Connect-MySQL($MySQLUser, $MySQLPassword, $MySQLHost, $MySQLDatabase) {
         Write-Host $_.Exception.Message -ForegroundColor Red
         exit
     }
-    Write-Host "Conectado ao MySQL database em $MySQLHost\$database" -ForegroundColor Yellow
+    Write-Host "Conectado ao MySQL database em $Env:MySQLHost\$Env:MySQLDatabase" -ForegroundColor Yellow
 
     return $conn
 }
@@ -436,9 +435,8 @@ Function normalizaData($campo,$cie) {
 #
 # ============================================================================================================================================
 
-$maquina = 'NOTEPTNA'
 
-    switch($maquina) {
+    switch($Env:maquina) {
         'NOTESAL'  {$PWSDrive = 'D:'}
         'NOTEPTNA' {$PWSDrive = 'F:'}
         default    {$PWSDrive = 'C:'}
@@ -475,6 +473,7 @@ verifica_pastas
 verifica_arquivos
 
 Clear-Host
+
 
 $conn = Connect-MySQL $user $pass $MySQLHost $database
 

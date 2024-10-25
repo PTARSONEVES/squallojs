@@ -2,6 +2,6 @@
 [Environment]::SetEnvironmentVariable('MySQLUser', 'root', 'Machine')
 [Environment]::SetEnvironmentVariable('MySQLHost', 'localhost', 'Machine')
 [Environment]::SetEnvironmentVariable('MySQLDatabase', 'sped_efd', 'Machine')
-[Environment]::SetEnvironmentVariable('MySQLPassword', 'strolandia', 'Machine')
+[Environment]::SetEnvironmentVariable('MySQLPassword', 'Strol@ndi@1', 'Machine')
 
 

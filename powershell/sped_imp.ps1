@@ -245,7 +245,7 @@ function processaSped($arqv) {
     #
     Write-Host 'Verificando colunas em excesso...'
     $query = 'INSERT INTO sped_txt (`texto`) SELECT * FROM spedprov;'
-    Execute-MySQLNonQuery $conn $query      
+    Execute-MySQLNonQuery $conn $query
     Execute-Sql 'excesso_colunas.sql'
     #
     # Cria o arquivo tratado
@@ -279,16 +279,16 @@ function sped_tratado() {
         $query = "SELECT * FROM tbs_registros;"
         $registros = Execute-MySQLQuery $query
         #
-        # Iteração 
+        # Iteração
         #
         for ($i=1;$i -le ($registros.Count -1);$i++) {
             $query = "SELECT * FROM sped_txt WHERE texto LIKE '|"+$registros[$i].registro+"%';"
             $registro = Execute-MySQLQuery $query
             if ($registro.Count -ge 2) {                                      # Inicia o tratamento do registro específico encontrado
-               Write-Host 'Processando registro ['$registros[$i].registro']' 
+               Write-Host 'Processando registro ['$registros[$i].registro']'
                $query = "TRUNCATE TABLE spedprov;"
                Execute-MySQLNonQuery $conn $query
-               $query = "REPLACE spedprov SELECT CONCAT(id,texto) FROM sped_txt WHERE texto LIKE '|"+$registros[$i].registro+"%';" 
+               $query = "REPLACE spedprov SELECT CONCAT(id,texto) FROM sped_txt WHERE texto LIKE '|"+$registros[$i].registro+"%';"
                Execute-MySQLNonQuery $conn $query
                if (Test-Path $dirTrata\spedprov.txt) {
                     Remove-Item -Path $dirTrata\spedprov.txt
@@ -313,7 +313,7 @@ function sped_tratado() {
 # ============================================================================================================================================
 
 function carregaSped($registro) {
-    
+
     $query = 'TRUNCATE TABLE reg'+$registro+'ie;'
     Execute-MySQLNonQuery $conn $query
 
@@ -330,7 +330,7 @@ function carregaSped($registro) {
 
     $query = "SELECT * FROM reg"+$registro+"ie a INNER JOIN prov b WHERE a.REG=b.registro AND a.Id="+$idmin+";"
     $ss = Execute-MySQLQuery $query
- 
+
     $fim = $ss.Count
     $totalcol = $ss[1].Table.Columns.Count
 
@@ -346,7 +346,7 @@ function carregaSped($registro) {
     $query = "SELECT * FROM reg"+$registro+"ie INTO OUTFILE '"+$dirTrataMySQL+"/spedprov.txt' FIELDS TERMINATED BY '|';"
     Execute-MySQLNonQuery $conn $query
     Get-Content -Path $dirTrata\spedprov.txt | Add-Content -Path $dirImp\$spedTrata
-    Remove-Item $dirTrata\spedprov.txt    
+    Remove-Item $dirTrata\spedprov.txt
 
 }
 
@@ -358,14 +358,14 @@ function carregaSped($registro) {
 # ============================================================================================================================================
 
 Function normalizaSpedie($campo,$c) {
-    
+
     $cie='reg'+$c+'ie'
 
     $query = "SELECT b.idmysql FROM tbs_registros a,tbs_campos b WHERE a.id=b.idregistro AND a.registro='"+$c+"' AND b.fieldname = '"+$campo+"';"
     $mysql = Execute-MySQLScalar $query
 
     switch($mysql) {
-        
+
         18 {
                 if ($campo.Contains(“DT_”)) {
                     normalizaData $campo $cie
@@ -373,7 +373,7 @@ Function normalizaSpedie($campo,$c) {
                     normalizaDecimal $campo $cie
                 }
                 break
-           }       
+           }
         20 {
                 if ($campo.Contains(“DT_”)) {
                     normalizaData $campo $cie
@@ -381,7 +381,7 @@ Function normalizaSpedie($campo,$c) {
                     normalizaDecimal $campo $cie
                 }
                 break
-           }       
+           }
         22 {
                 if ($campo.Contains(“DT_”)) {
                     normalizaData $campo $cie
@@ -389,7 +389,7 @@ Function normalizaSpedie($campo,$c) {
                     normalizaDecimal $campo $cie
                 }
                 break
-           }       
+           }
         default {break}
     }
 }
@@ -401,14 +401,14 @@ Function normalizaSpedie($campo,$c) {
 # ============================================================================================================================================
 
 Function normalizaDecimal($campo,$cie) {
-    
+
     $sqls =  Get-Content -Path $dirSql\normaliza_decimal.sql
     foreach ($sql in $sqls) {
         $sql = $sql -replace 'arquivo', $cie
         $sql = $sql -replace 'campo', $campo
         Execute-MySQLNonQuery $conn $sql
     }
-    
+
  }
 
 # ============================================================================================================================================
